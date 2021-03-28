@@ -1,0 +1,131 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Current Weather Info</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+body {
+	text-align: center;
+}
+
+.container {
+	margin-top: 5%;
+}
+
+table {
+	margin: auto;
+	border-collapse: collapse;
+	width: 20%;
+	height: 20%;
+	text-align: left;
+	display: none;
+}
+
+table.selected {
+	display: table;
+}
+
+td {
+	border-style: dotted;
+	padding-left: 10px;
+}
+
+.cities {
+	margin-top: 20px;
+}
+</style>
+<script th:inline="javascript">
+	function changeCity(event) {
+		console.log(event);
+		var obj = document.getElementById("cd-dropdown");
+		var index = obj.selectedIndex;
+		var value = obj.options[index].value;
+
+		var tables = document.getElementsByTagName("table");
+		for (var i = 0; i < tables.length; i++) {
+			tables[i].setAttribute("class", "");
+		}
+		document.getElementById(value).setAttribute("class", "selected");
+	}
+</script>
+</head>
+<body>
+	<div class="container">
+		<table id="melbourne" th:object="${melbourne}" class="selected">
+			<tr>
+				<td class="lable"><p>City</p></td>
+				<td><p th:text="*{city}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Updated time</p></td>
+				<td><p th:text="*{updatedTime}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Weather</p></td>
+				<td><p th:text="*{weather}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Temperature</p></td>
+				<td><p th:text="*{temperature}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Wind</p></td>
+				<td><p th:text="*{wind}" /></td>
+			</tr>
+		</table>
+		<table id="sydney" th:object="${sydney}">
+			<tr>
+				<td class="lable"><p>City</p></td>
+				<td><p th:text="*{city}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Updated time</p></td>
+				<td><p th:text="*{updatedTime}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Weather</p></td>
+				<td><p th:text="*{weather}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Temperature</p></td>
+				<td><p th:text="*{temperature}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Wind</p></td>
+				<td><p th:text="*{wind}" /></td>
+			</tr>
+		</table>
+		<table id="wollongong" th:object="${wollongong}">
+			<tr>
+				<td class="lable"><p>City</p></td>
+				<td><p th:text="*{city}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Updated time</p></td>
+				<td><p th:text="*{updatedTime}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Weather</p></td>
+				<td><p th:text="*{weather}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Temperature</p></td>
+				<td><p th:text="*{temperature}" /></td>
+			</tr>
+			<tr>
+				<td class="lable"><p>Wind</p></td>
+				<td><p th:text="*{wind}" /></td>
+			</tr>
+		</table>
+
+		<div class="cities">
+			<select id="cd-dropdown" class="cd-select"
+				onchange="changeCity(this)">
+				<option value="melbourne" selected>Melbourne</option>
+				<option value="sydney">Sydney</option>
+				<option value="wollongong">Wollongong</option>
+			</select>
+		</div>
+	</div>
+</body>
+</html>

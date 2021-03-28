@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class WeatherController {
+public class WeatherApiController {
 
 	@Autowired
 	private WeatherService service;
 		
-	@RequestMapping("/weather")
+	@RequestMapping("/weatherapi")
 	@ResponseBody
     public WeatherModel getWeather(@RequestParam String q) {
         return this.service.getWeather(q);

@@ -38,20 +38,25 @@ public class WeatherService {
 		try {
 			if (city != null) {
 				final String url = this.getWeatherUri(city);
+				
+				// load the xml from url - online public api
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				Document doc = db.parse(url);
 				doc.getDocumentElement().normalize();
+				
+				// get weather info from xml response
 				weatherModel = this.getWeatherModel(city, doc.getDocumentElement());
 			}
 		} catch (Exception e) {
+			// TODO log errors for trouble shooting
 			e.printStackTrace();
 		}
 		return weatherModel;
 	}
 
 	/**
-	 *  Gets weather model from api response
+	 *  Gets weather info model.
 	 *  
 	 * @param city
 	 * @param docElement
@@ -85,6 +90,7 @@ public class WeatherService {
 			Date start = sdf.parse(dateInString);
 			newTime = sdf2.format(start);
 		} catch (ParseException e) {
+			// TODO add logger
 			e.printStackTrace();
 		}
 		return newTime;
@@ -122,15 +128,17 @@ public class WeatherService {
 	 * @return
 	 */
 	private String getWindInfo(final Element docElement) {
-		StringBuffer sbuff = new StringBuffer();
+		StringBuilder windInfo = new StringBuilder();
+		
 		// only wind node has the speed attribute
 		NodeList nodeList = docElement.getElementsByTagName(Constants.SPEED);
 		if(nodeList!= null) {
-			Node node = nodeList.item(0);
+			Node node = nodeList.item(Constants.IDX_FIRST);
 			if (node != null && node.hasAttributes()) {
 				String value = Constants.EMPTY;
 				String unit = Constants.EMPTY;
 				NamedNodeMap attrs = node.getAttributes();
+				
 				for (int i = 0; i < attrs.getLength(); i++) {
 					Attr attribute = (Attr) attrs.item(i);
 					if (attribute != null) {
@@ -141,11 +149,11 @@ public class WeatherService {
 						}
 					}
 				}
-				sbuff.append(value);
-				sbuff.append(unit);
+				windInfo.append(value);
+				windInfo.append(unit);
 			}
 		}
-		return sbuff.toString();
+		return windInfo.toString();
 	}
 
 	/**

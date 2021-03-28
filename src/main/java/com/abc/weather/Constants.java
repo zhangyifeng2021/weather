@@ -1,8 +1,7 @@
 package com.abc.weather;
 
 /**
- * 
- * @author Lenovo
+ * The Constants class.
  *
  */
 public class Constants {
@@ -24,4 +23,6 @@ public class Constants {
 	public static final String DATE_FORMAT_INPUT = "yyyy-MM-dd'T'HH:mm:ss";
 	
 	public static final String DATE_FORMAT_OUTPUT = "E, HH:mm a";
+	
+	public static final int IDX_FIRST = 0;
 }
