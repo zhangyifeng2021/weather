@@ -1,12 +1,10 @@
 package com.abc.weather;
 
-import java.util.Date;
-
 public class WeatherModel {
 	
 	private String city;
 	
-	private Date updatedTime;
+	private String updatedTime;
 	
 	private String weather;
 	
@@ -20,10 +18,10 @@ public class WeatherModel {
 	public void setCity(String city) {
 		this.city = city;
 	}
-	public Date getUpdatedTime() {
+	public String getUpdatedTime() {
 		return updatedTime;
 	}
-	public void setUpdatedTime(Date updatedTime) {
+	public void setUpdatedTime(String updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 	public String getWeather() {

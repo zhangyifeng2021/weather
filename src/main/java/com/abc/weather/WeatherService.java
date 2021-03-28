@@ -1,39 +1,40 @@
 package com.abc.weather;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
-import net.sf.json.JSONObject;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 @Service
 public class WeatherService {
-
-	private RestTemplate restTemplate;
 
 	@Value("${weather.api.host}")
 	private String weatherApiHost;
 
 	@Value("${weather.api.appid}")
 	private String weatherApiId;
-
+	
+	/**
+	 * Gets the weather information of the city.
+	 * 
+	 * @param city
+	 * @return
+	 */
 	public WeatherModel getWeather(final String city) {
-
 		WeatherModel weatherModel = null;
-
 		try {
 			if (city != null) {
 				final String url = this.getWeatherUri(city);
@@ -41,37 +42,111 @@ public class WeatherService {
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				Document doc = db.parse(url);
 				doc.getDocumentElement().normalize();
-				
-				System.out.println(doc.getDocumentElement().getNodeName());
+				weatherModel = this.getWeatherModel(city, doc.getDocumentElement());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		weatherModel = new WeatherModel();
-		weatherModel.setCity("Melbourne");
-		weatherModel.setUpdatedTime(new Date());
-		weatherModel.setWeather("Mostly Cloudy");
-		weatherModel.setTemperature("9°C");
-		weatherModel.setWind("32km/h");
-
 		return weatherModel;
 	}
 
 	/**
-	 * Gets weather information from api response
-	 * 
-	 * @param responseJson
+	 *  Gets weather model from api response
+	 *  
+	 * @param city
+	 * @param docElement
 	 * @return
 	 */
-	/*
-	 * private WeatherModel getWeatherModel(final String responseJson) {
-	 * WeatherModel weatherModel = null; if(responseJson != null) { weatherModel =
-	 * new WeatherModel(); JSONObject jsonObject =
-	 * JSONObject.fromObject(responseJson); final String city =
-	 * jsonObject.getString("name"); System.out.println(responseJson);
-	 * weatherModel.setUpdatedTime(null); } return weatherModel; }
+	private WeatherModel getWeatherModel(final String city, final Element docElement) {
+		WeatherModel weatherModel = new WeatherModel();
+		if (docElement != null) {
+			weatherModel.setCity(city);
+			weatherModel.setUpdatedTime(this.getUpdatedTime(docElement));
+			weatherModel.setWeather(this.getNodeAttrValue(docElement, Constants.WEATHER));
+			weatherModel.setTemperature(this.getNodeAttrValue(docElement, Constants.TEMPERATURE));
+			weatherModel.setWind(this.getWindInfo(docElement));
+		}
+		return weatherModel;
+	}
+	
+	/**
+	 * Gets last updated time.
+	 * 
+	 * @param docElement
+	 * @return
 	 */
+	private String getUpdatedTime(final Element docElement) {
+		String dateInString = this.getNodeAttrValue(docElement, Constants.LAST_UPDATE);
+		SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT_INPUT);
+		SimpleDateFormat sdf2 = new SimpleDateFormat(Constants.DATE_FORMAT_OUTPUT, Locale.US);
+		String newTime = Constants.EMPTY;
+		
+		try {
+			Date start = sdf.parse(dateInString);
+			newTime = sdf2.format(start);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return newTime;
+	}
+
+	/**
+	 * Gets the attribute value from xml response.
+	 * 
+	 * @param docElement
+	 * @param nodeName
+	 * @return
+	 */
+	private String getNodeAttrValue(final Element docElement, final String nodeName) {
+		String attrValue = Constants.EMPTY;
+		NodeList nodeList = docElement.getElementsByTagName(nodeName);
+		if(nodeList!= null) {
+			Node node = nodeList.item(0);
+			if (node != null && node.hasAttributes()) {
+				NamedNodeMap attrs = node.getAttributes();
+				for (int i = 0; i < attrs.getLength(); i++) {
+					Attr attribute = (Attr) attrs.item(i);
+					if (attribute != null && Constants.VALUE.equals(attribute.getName())) {
+						attrValue = attribute.getValue();
+					}
+				}
+			}
+		}
+		return attrValue;
+	}
+
+	/**
+	 * Gets wind info.
+	 * 
+	 * @param docElement
+	 * @return
+	 */
+	private String getWindInfo(final Element docElement) {
+		StringBuffer sbuff = new StringBuffer();
+		// only wind node has the speed attribute
+		NodeList nodeList = docElement.getElementsByTagName(Constants.SPEED);
+		if(nodeList!= null) {
+			Node node = nodeList.item(0);
+			if (node != null && node.hasAttributes()) {
+				String value = Constants.EMPTY;
+				String unit = Constants.EMPTY;
+				NamedNodeMap attrs = node.getAttributes();
+				for (int i = 0; i < attrs.getLength(); i++) {
+					Attr attribute = (Attr) attrs.item(i);
+					if (attribute != null) {
+						if(Constants.VALUE.equals(attribute.getName())) {
+							value = attribute.getValue();
+						} else if(Constants.UNIT.equals(attribute.getName())) {
+							unit = attribute.getValue();
+						}
+					}
+				}
+				sbuff.append(value);
+				sbuff.append(unit);
+			}
+		}
+		return sbuff.toString();
+	}
 
 	/**
 	 * Gets weather uri.
@@ -82,9 +157,8 @@ public class WeatherService {
 	 */
 	private String getWeatherUri(final String city) throws URISyntaxException {
 		String weatherUri = null;
-
 		if (city != null) {
-			StringBuilder sbuff = new StringBuilder();
+			StringBuffer sbuff = new StringBuffer();
 			sbuff.append(this.weatherApiHost);
 			sbuff.append("?q=");
 			sbuff.append(city);
@@ -92,7 +166,6 @@ public class WeatherService {
 			sbuff.append(this.weatherApiId);
 			weatherUri = sbuff.toString();
 		}
-		System.out.println(weatherUri);
 		return weatherUri;
 	}
 }
